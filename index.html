@@ -584,7 +584,7 @@
             <span class="modal-close" onclick="toggleModal()">✖</span>
             <h2>🔬 The Physics of Perfect Eggs</h2>
             
-            <p>Welcome to the wonderful realm of physics-informed egg cooking, just like 2nd year thermal physics questions! This app uses the exact solution to the thermal diffusion equation for a spherically symmetric egg, following the derivation by Dr Charles D. H. Williams.</p>
+            <p>Welcome to the wonderful realm of physics-informed egg cooking, just like 2nd year thermal physics questions! This app uses the exact solution to the thermal diffusion equation for a spherically symmetric egg, following the derivation by Dr Charles D. H. Wnilliams.</p>
 
             <h3>The Thermal Diffusion Equation</h3>
             <p>The temperature distribution in the egg follows the spherical heat equation:</p>
@@ -625,7 +625,7 @@
             
             <p>where the thermal time constant is \(\tau_0 = C\rho R^2/\kappa = R^2/D\).</p>
 
-            <h3>The Williams Formula (Practical)</h3>
+            <h3>The "Williams Formula" (first Fourier mode) </h3>
             <p>For \(t > 0.1\tau_0\), the first Fourier mode dominates, and solving for when the yolk-white boundary (at \(r=0.69R\)) reaches temperature \(T_{\rm yolk}\) gives:</p>
             
             <div class="equation">\[t_{\rm cooked} = \kappa M^{2/3} \ln\left[0.76 \frac{T_{\rm egg}-T_{\rm water}}{T_{\rm yolk}-T_{\rm water}}\right]\]</div>
@@ -673,6 +673,7 @@
         let cookingTime = 0;
         let animationFrame = null;
         let temperatureHistory = [];
+        let isPlaying = false; 
         
         // Physical constants from Williams paper (averaged between yolk and white)
         // Yolk: c=2700, κ=0.34, ρ=1032, κ_williams=31
@@ -866,6 +867,8 @@
             
             // Clear sparkles
             document.querySelectorAll('.sparkle').forEach(s => s.remove());
+            // Silence alarm 
+            isPlaying = false; 
         }
 
         // Update timer display
@@ -1156,7 +1159,7 @@
             const egg = document.querySelector('.egg-mascot');
             egg.style.animation = 'wobble 0.5s ease-in-out infinite';
             
-            for (let i = 0; i < 30; i++) {
+            for (let i = 0; i < 10; i++) {
                 setTimeout(() => createSparkles(), i * 100);
             }
             
@@ -1171,9 +1174,9 @@
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
                 // Create a cheerful, attention-grabbing 8-bit melody
-                // Play a ascending scale that repeats 3 times for better audibility
                 const notes = [523.25, 587.33, 659.25, 783.99, 880.00]; // C5, D5, E5, G5, A5
-                const repeats = 3;
+                const repeats = 30;
+                isPlaying = true;
 
                 for (let repeat = 0; repeat < repeats; repeat++) {
                     notes.forEach((freq, i) => {
@@ -1190,11 +1193,12 @@
                         const endTime = startTime + 0.35;
 
                         // Increased gain from 0.15 to 0.3 for better audibility
-                        gainNode.gain.setValueAtTime(0.3, startTime);
+                        gainNode.gain.setValueAtTime(1, startTime);
                         gainNode.gain.exponentialRampToValueAtTime(0.01, endTime);
 
                         oscillator.start(startTime);
                         oscillator.stop(endTime);
+                        if (!isPlaying) return; 
                     });
                 }
 
