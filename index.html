@@ -759,13 +759,13 @@
             const targetTemp = parseFloat(document.getElementById('targetTemp').value) || 72;
             
             // Validate inputs
-            if (mass < 30 || mass > 100) {
-                alert('Please enter a valid egg mass between 30 and 100 grams');
+            if (mass < 20 || mass > 100) {
+                alert('Please enter a valid egg mass between 20 and 100 grams');
                 return;
             }
             
-            if (startTemp < 0 || startTemp > 30) {
-                alert('Please enter a starting temperature between 0°C and 30°C');
+            if (startTemp < 0 || startTemp > 50) {
+                alert('Please enter a starting temperature between 0°C and 50°C. If you are an American, please use the metric system...');
                 return;
             }
             
