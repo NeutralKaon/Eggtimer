@@ -1,0 +1,17 @@
+{
+  "name": "Physics-Filled Egg Timer",
+  "short_name": "Egg Timer",
+  "description": "A physics-based egg timer that solves the thermal diffusion equation for perfectly cooked eggs",
+  "scope": "/Eggtimer/",
+  "start_url": "/Eggtimer/",
+  "background_color": "#2A2A40",
+  "theme_color": "#667eea",
+  "display": "standalone",
+  "icons": [
+      {
+        "src": "/Eggtimer/img/icon.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+  ]
+}
