@@ -249,6 +249,60 @@
             box-shadow: 0 0 10px rgba(255, 230, 109, 0.5);
         }
 
+        input[type="range"] {
+            width: 100%;
+            height: 40px;
+            background: transparent;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+            width: 100%;
+            height: 10px;
+            background: #0F0F1E;
+            border: 2px solid #A8E6CF;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: linear-gradient(135deg, #FF4667 0%, #FF8C94 100%);
+            border: 3px solid #FFE66D;
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 10px;
+            background: #0F0F1E;
+            border: 2px solid #A8E6CF;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: linear-gradient(135deg, #FF4667 0%, #FF8C94 100%);
+            border: 3px solid #FFE66D;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        input[type="range"]:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 10px rgba(255, 230, 109, 0.8);
+        }
+
+        input[type="range"]:focus::-moz-range-thumb {
+            box-shadow: 0 0 10px rgba(255, 230, 109, 0.8);
+        }
+
         .button-container {
             display: flex;
             gap: 15px;
@@ -536,6 +590,11 @@
             </select>
         </div>
 
+        <div class="input-group">
+            <label for="seriesTerms">🔢 Fourier Series Terms (for graph): <span id="seriesTermsValue">50</span></label>
+            <input type="range" id="seriesTerms" min="1" max="100" value="50" step="1" style="width: 100%; cursor: pointer; height: 40px;">
+        </div>
+
         <div class="button-container">
             <button id="startBtn" onclick="startTimer()">🚀 START TIMER</button>
             <button id="pauseBtn" onclick="pauseTimer()" disabled>⏸️ PAUSE</button>
@@ -608,10 +667,10 @@
 
             <h3>Temperature at the Centre</h3>
             <p>Taking the limit \(r \to 0\), using \(\lim_{r\to 0} \sin(n\pi r/R)/r = n\pi/R\):</p>
-            
-            <div class="equation">\[T(0,t) = T_1 + 2(T_1-T_0)\sum_{n=1}^{\infty} (-1)^n \exp\left(-\frac{n^2\pi^2 t}{\tau_0}\right)\]</div>
-            
-            <p>where the thermal time constant is \(\tau_0 = C\rho R^2/\kappa = R^2/D\).</p>
+
+            <div class="equation">\[T(0,t) = T_{\rm water} + 2(T_{\rm water}-T_{\rm egg})\sum_{n=1}^{\infty} (-1)^n \exp\left(-\frac{n^2\pi^2 t}{\tau_0}\right)\]</div>
+
+            <p>where the thermal time constant is \(\tau_0 = C\rho R^2/\kappa = R^2/D\), \(T_{\rm water}\) is the boiling point, and \(T_{\rm egg}\) is the initial egg temperature.</p>
 
             <h3>The Williams Formula (Practical)</h3>
             <p>For \(t > 0.1\tau_0\), the first Fourier mode dominates, and solving for when the yolk-white boundary (at \(r=0.69R\)) reaches temperature \(T_{\rm yolk}\) gives:</p>
@@ -661,6 +720,7 @@
         let cookingTime = 0;
         let animationFrame = null;
         let temperatureHistory = [];
+        let numSeriesTerms = 50;
         
         // Physical constants from Williams paper (averaged between yolk and white)
         // Yolk: c=2700, κ=0.34, ρ=1032, κ_williams=31
@@ -675,6 +735,18 @@
         document.getElementById('eggSize').addEventListener('change', function(e) {
             if (e.target.value) {
                 document.getElementById('mass').value = e.target.value;
+            }
+        });
+
+        // Series terms slider
+        document.getElementById('seriesTerms').addEventListener('input', function(e) {
+            numSeriesTerms = parseInt(e.target.value);
+            document.getElementById('seriesTermsValue').textContent = numSeriesTerms;
+
+            // Redraw graph if it exists
+            if (window.graphData) {
+                const { Twater, Tegg, targetTemp, radius, totalTime } = window.graphData;
+                drawTemperatureGraph(Twater, Tegg, targetTemp, radius, totalTime);
             }
         });
 
@@ -694,19 +766,20 @@
         }
 
         // Calculate temperature at centre using full Fourier series solution
-        function calculateCentreTemperature(t, Twater, Tegg, radius) {
+        function calculateCentreTemperature(t, Twater, Tegg, radius, numTerms = 50) {
             // τ₀ = cρa²/κ = a²/D
             const tau0 = (radius * radius) / THERMAL_DIFFUSIVITY;
-            
+
             let sum = 0;
             // Sum Fourier modes (convergence is rapid for t > 0.1τ₀)
-            for (let n = 1; n <= 50; n++) {
+            for (let n = 1; n <= numTerms; n++) {
                 const sign = Math.pow(-1, n); // (-1)^n
                 const exponent = -(n * n * Math.PI * Math.PI * t) / tau0;
                 sum += sign * Math.exp(exponent);
             }
-            
-            return Twater + 2 * (Tegg - Twater) * sum;
+
+            // Correct formula: T(0,t) = T_water + 2(T_water - T_egg) Σ (-1)^n exp(...)
+            return Twater + 2 * (Twater - Tegg) * sum;
         }
 
         // Williams formula for cooking time (THE practical formula)
@@ -931,7 +1004,7 @@
             
             for (let i = 0; i <= numPoints; i++) {
                 const t = (extendedTime / numPoints) * i;
-                const temp = calculateCentreTemperature(t, Twater, Tegg, radius);
+                const temp = calculateCentreTemperature(t, Twater, Tegg, radius, numSeriesTerms);
                 points.push({
                     t: t,
                     x: (width / extendedTime) * t,
@@ -1063,7 +1136,7 @@
             
             // Draw current position
             const currentX = (canvas.width / extendedTime) * elapsed;
-            const currentTemp = calculateCentreTemperature(elapsed, Twater, Tegg, radius);
+            const currentTemp = calculateCentreTemperature(elapsed, Twater, Tegg, radius, numSeriesTerms);
             const currentY = canvas.height - ((currentTemp - Tegg) / tempRange) * canvas.height * 0.85 - canvas.height * 0.08;
             
             // Vertical line at current time
